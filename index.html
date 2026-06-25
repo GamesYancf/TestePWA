@@ -27,6 +27,7 @@
     <section class="topbar">
       <button class="tab-button active" data-tab="inventory">Estoque</button>
       <button class="tab-button" data-tab="pos">PDV</button>
+      <button class="tab-button" data-tab="movement">Movimentação</button>
     </section>
 
     <section class="actions">
@@ -35,50 +36,62 @@
     </section>
 
     <section id="inventory" class="tab-panel active-panel">
-      <form id="product-form" class="product-form">
-        <div class="field-group">
-          <label for="name">Nome do produto</label>
-          <input id="name" name="name" type="text" placeholder="Caneta azul" required>
-        </div>
-
-        <div class="field-group">
-          <label for="description">Descrição</label>
-          <textarea id="description" name="description" rows="2" placeholder="Breve descrição do produto"></textarea>
-        </div>
-
-        <div class="field-row">
-          <div class="field-group">
-            <label for="quantity">Quantidade em estoque</label>
-            <input id="quantity" name="quantity" type="number" min="1" value="1" required>
-          </div>
-          <div class="field-group">
-            <label for="price">Preço unitário (R$)</label>
-            <input id="price" name="price" type="number" min="0.01" step="0.01" value="0.00" required>
-          </div>
-        </div>
-
-        <button class="button" type="submit">Cadastrar produto</button>
-      </form>
-
-      <div class="inventory">
-        <div class="inventory-header">
+      <div class="inventory-header">
+        <div>
           <h2>Produtos cadastrados</h2>
           <span id="product-count">0 produtos</span>
         </div>
-
-        <div class="inventory-list" id="product-list">
-          <p class="empty-state">Cadastre produtos para gerenciar estoque.</p>
+        <div class="inventory-actions">
+          <button id="toggle-product-form" class="button secondary small" type="button">+ Novo produto</button>
+          <button id="clear-stock" class="button secondary small" type="button">Limpar estoque</button>
         </div>
+      </div>
 
-        <div class="totals">
-          <div>
-            <strong>Total de itens</strong>
-            <span id="total-items">0</span>
+      <div id="product-form-wrapper" class="product-form-wrapper collapsed">
+        <form id="product-form" class="product-form">
+          <div class="field-row">
+            <div class="field-group">
+              <label for="name">Nome do produto</label>
+              <input id="name" name="name" type="text" placeholder="Caneta azul" required>
+            </div>
+            <div class="field-group">
+              <label for="category">Categoria</label>
+              <input id="category" name="category" type="text" placeholder="Material escolar">
+            </div>
           </div>
-          <div>
-            <strong>Valor total no estoque</strong>
-            <span id="total-value">R$ 0,00</span>
+
+          <div class="field-group">
+            <label for="description">Descrição</label>
+            <textarea id="description" name="description" rows="2" placeholder="Breve descrição do produto"></textarea>
           </div>
+
+          <div class="field-row">
+            <div class="field-group">
+              <label for="quantity">Quantidade em estoque</label>
+              <input id="quantity" name="quantity" type="number" min="1" value="1" required>
+            </div>
+            <div class="field-group">
+              <label for="price">Preço unitário (R$)</label>
+              <input id="price" name="price" type="number" min="0.01" step="0.01" value="0.00" required>
+            </div>
+          </div>
+
+          <button class="button" type="submit">Cadastrar produto</button>
+        </form>
+      </div>
+
+      <div class="inventory-list" id="product-list">
+        <p class="empty-state">Cadastre produtos para gerenciar estoque.</p>
+      </div>
+
+      <div class="totals">
+        <div>
+          <strong>Total de itens</strong>
+          <span id="total-items">0</span>
+        </div>
+        <div>
+          <strong>Valor total no estoque</strong>
+          <span id="total-value">R$ 0,00</span>
         </div>
       </div>
     </section>
@@ -117,8 +130,52 @@
           </div>
         </div>
 
-        <div class="pos-actions">
+        <div class="cart-actions">
+          <button id="clear-cart" class="button secondary" type="button">Limpar carrinho</button>
           <button id="complete-sale" class="button" type="button">Finalizar venda</button>
+        </div>
+
+        <div class="sales-history-section">
+          <div class="inventory-header">
+            <h2>Histórico de vendas</h2>
+          </div>
+          <div class="cart-list" id="sales-history">
+            <p class="empty-state">Nenhuma venda registrada ainda.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="movement" class="tab-panel">
+      <div class="movement-card">
+        <div class="field-group">
+          <label for="movement-product-select">Produto</label>
+          <select id="movement-product-select"></select>
+        </div>
+
+        <div class="field-row">
+          <div class="field-group">
+            <label for="movement-quantity">Quantidade</label>
+            <input id="movement-quantity" type="number" min="1" value="1">
+          </div>
+          <div class="field-group movement-buttons">
+            <button id="stock-add" class="button" type="button">Adicionar</button>
+            <button id="stock-remove" class="button secondary" type="button">Baixar</button>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label for="movement-note">Observação</label>
+          <textarea id="movement-note" rows="2" placeholder="Motivo ou nota da movimentação"></textarea>
+        </div>
+
+        <div class="history-section">
+          <div class="inventory-header">
+            <h2>Histórico de movimentações</h2>
+          </div>
+          <div class="cart-list" id="movement-history">
+            <p class="empty-state">Nenhuma movimentação registrada ainda.</p>
+          </div>
         </div>
       </div>
     </section>
