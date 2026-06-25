@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#4f46e5">
+  <title>Página secundária</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <article class="page-card">
+    <div class="glow left"></div>
+    <div class="glow right"></div>
+
+    <h1>Segunda página</h1>
+    <p class="lead">Esta é a outra página. Aqui também o PWA funciona e você pode voltar para a principal.</p>
+
+    <div class="card-grid">
+      <button id="back-btn" type="button">Voltar para a página inicial</button>
+      <p class="hint">Use o botão para retornar. O PWA mantém o mesmo estilo e a navegação funciona.</p>
+    </div>
+  </article>
+
+  <script>
+    const backBtn = document.getElementById('back-btn');
+
+    if (backBtn) {
+      backBtn.addEventListener('click', () => {
+        window.location.href = 'index.html';
+      });
+    }
+  </script>
+</body>
+</html>

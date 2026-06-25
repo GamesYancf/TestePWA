@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#4f46e5">
+  <title>Mini PWA</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <article class="page-card">
+    <div class="glow left"></div>
+    <div class="glow right"></div>
+
+    <h1>Seu mini PWA bonito</h1>
+    <p class="lead">Um exemplo simples com animação, texto e botão para você testar no celular e instalar com GitHub Pages.</p>
+
+    <div class="card-grid">
+      <button id="toggle-btn" type="button">Alterar texto</button>
+      <button id="navigate-btn" type="button" class="secondary">Ir para outra página</button>
+      <button id="error-btn" type="button" class="secondary">Abrir popup de erro</button>
+      <div class="status-box" id="status-box">
+        <strong>Estado atual:</strong>
+        <span id="message">Pronto para você testar o botão.</span>
+      </div>
+      <p class="hint">O texto acima muda com JavaScript e o PWA registra o service worker automaticamente.</p>
+    </div>
+  </article>
+
+  <div class="overlay hidden" id="error-overlay">
+    <div class="modal-card">
+      <h2>Erro de teste</h2>
+      <p>Este é um popup de erro simulado. Feche para voltar à página principal.</p>
+      <button id="close-error-btn" type="button">Fechar</button>
+    </div>
+  </div>
+
+  <script src="main.js" defer></script>
+</body>
+</html>
