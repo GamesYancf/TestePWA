@@ -1,12 +1,15 @@
 {
-  "name": "Cadastro de Produtos PWA",
-  "short_name": "Produtos",
-  "description": "Mini sistema PWA de cadastro de produtos com preço, quantidade e descrição.",
-  "start_url": "./",
+  "name": "Loja PWA - Estoque e PDV",
+  "short_name": "Loja PWA",
+  "description": "Aplicativo progressivo para controle de estoque e ponto de venda de uma lojinha.",
+  "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
+  "display_override": ["standalone", "window-controls-overlay"],
+  "orientation": "portrait-primary",
   "background_color": "#eef2ff",
   "theme_color": "#4f46e5",
+  "categories": ["business", "productivity"],
   "icons": [
     {
       "src": "icons/icon-192.png",

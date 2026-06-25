@@ -4,9 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#4f46e5">
-  <title>Cadastro de Produtos PWA</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>Loja PWA - Estoque e PDV</title>
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icons/icon-192.png" sizes="192x192" type="image/png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -15,58 +19,106 @@
     <div class="glow right"></div>
 
     <header class="hero">
-      <span class="badge">PWA</span>
-      <h1>Cadastro de Produtos</h1>
-      <p class="lead">Registre produtos com descrição, quantidade e preço. Funciona offline no celular e pode ser instalado como app.</p>
+      <span class="badge">LOJA</span>
+      <h1>Controle de Estoque e PDV</h1>
+      <p class="lead">Sistema simples para sua lojinha: cadastre produtos, controle estoque e venda pelo PDV. Funciona offline e pode ser instalado.</p>
     </header>
+
+    <section class="topbar">
+      <button class="tab-button active" data-tab="inventory">Estoque</button>
+      <button class="tab-button" data-tab="pos">PDV</button>
+    </section>
 
     <section class="actions">
       <button id="install-btn" class="button secondary hidden" type="button">Instalar app</button>
-      <p id="install-help" class="hint hidden">No celular, se o botão não aparecer, use o menu do navegador e escolha "Adicionar à tela inicial".</p>
+      <p id="install-help" class="hint hidden">No Android Chrome, aguarde o prompt aparecer ou use o menu do navegador se necessário.</p>
     </section>
 
-    <form id="product-form" class="product-form">
-      <div class="field-group">
-        <label for="name">Nome do produto</label>
-        <input id="name" name="name" type="text" placeholder="Caneta azul" required>
-      </div>
-
-      <div class="field-group">
-        <label for="description">Descrição</label>
-        <textarea id="description" name="description" rows="2" placeholder="Breve descrição do produto"></textarea>
-      </div>
-
-      <div class="field-row">
+    <section id="inventory" class="tab-panel active-panel">
+      <form id="product-form" class="product-form">
         <div class="field-group">
-          <label for="quantity">Quantidade</label>
-          <input id="quantity" name="quantity" type="number" min="1" value="1" required>
+          <label for="name">Nome do produto</label>
+          <input id="name" name="name" type="text" placeholder="Caneta azul" required>
         </div>
+
         <div class="field-group">
-          <label for="price">Preço (R$)</label>
-          <input id="price" name="price" type="number" min="0.01" step="0.01" value="0.00" required>
+          <label for="description">Descrição</label>
+          <textarea id="description" name="description" rows="2" placeholder="Breve descrição do produto"></textarea>
+        </div>
+
+        <div class="field-row">
+          <div class="field-group">
+            <label for="quantity">Quantidade em estoque</label>
+            <input id="quantity" name="quantity" type="number" min="1" value="1" required>
+          </div>
+          <div class="field-group">
+            <label for="price">Preço unitário (R$)</label>
+            <input id="price" name="price" type="number" min="0.01" step="0.01" value="0.00" required>
+          </div>
+        </div>
+
+        <button class="button" type="submit">Cadastrar produto</button>
+      </form>
+
+      <div class="inventory">
+        <div class="inventory-header">
+          <h2>Produtos cadastrados</h2>
+          <span id="product-count">0 produtos</span>
+        </div>
+
+        <div class="inventory-list" id="product-list">
+          <p class="empty-state">Cadastre produtos para gerenciar estoque.</p>
+        </div>
+
+        <div class="totals">
+          <div>
+            <strong>Total de itens</strong>
+            <span id="total-items">0</span>
+          </div>
+          <div>
+            <strong>Valor total no estoque</strong>
+            <span id="total-value">R$ 0,00</span>
+          </div>
         </div>
       </div>
+    </section>
 
-      <button class="button" type="submit">Salvar produto</button>
-    </form>
-
-    <section class="inventory">
-      <div class="inventory-header">
-        <h2>Produtos cadastrados</h2>
-        <span id="product-count">0 itens</span>
-      </div>
-      <div class="inventory-list" id="product-list">
-        <p class="empty-state">Nenhum produto cadastrado ainda.</p>
-      </div>
-
-      <div class="totals">
-        <div>
-          <strong>Total de itens</strong>
-          <span id="total-items">0</span>
+    <section id="pos" class="tab-panel">
+      <div class="pos-card">
+        <div class="field-group">
+          <label for="product-select">Produto</label>
+          <select id="product-select"></select>
         </div>
-        <div>
-          <strong>Valor total</strong>
-          <span id="total-value">R$ 0,00</span>
+
+        <div class="field-row">
+          <div class="field-group">
+            <label for="sale-quantity">Quantidade</label>
+            <input id="sale-quantity" type="number" min="1" value="1">
+          </div>
+          <div class="field-group">
+            <label>&nbsp;</label>
+            <button id="add-to-cart" class="button" type="button">Adicionar ao carrinho</button>
+          </div>
+        </div>
+
+        <div class="cart-header">
+          <h2>Venda atual</h2>
+          <span id="cart-items">0 itens</span>
+        </div>
+
+        <div class="cart-list" id="cart-list">
+          <p class="empty-state">Adicione produtos ao carrinho para registrar a venda.</p>
+        </div>
+
+        <div class="totals">
+          <div>
+            <strong>Total da venda</strong>
+            <span id="cart-total">R$ 0,00</span>
+          </div>
+        </div>
+
+        <div class="pos-actions">
+          <button id="complete-sale" class="button" type="button">Finalizar venda</button>
         </div>
       </div>
     </section>
