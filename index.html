@@ -19,7 +19,6 @@
     <div class="glow right"></div>
 
     <header class="hero">
-      <span class="badge">LOJA</span>
       <h1>Painel da sua loja</h1>
       <p class="lead">Um espaço organizado para gerenciar estoque, vendas e movimentações com simplicidade.</p>
     </header>
@@ -29,11 +28,11 @@
       <button class="tab-button" data-tab="inventory">Estoque</button>
       <button class="tab-button" data-tab="pos">PDV</button>
       <button class="tab-button" data-tab="movement">Movimentação</button>
+      <button class="tab-button" data-tab="sales-history">Histórico de vendas</button>
     </section>
 
     <section id="home" class="tab-panel active-panel">
       <div class="home-card">
-        <span class="badge">LOJA</span>
         <h2>Bem-vindo ao painel da sua loja</h2>
         <p class="lead">Aqui você controla o estoque, registra vendas e registra movimentações de saída ou entrada.</p>
         <div class="home-info-grid">
@@ -52,25 +51,48 @@
         </div>
         <div class="actions">
           <button id="install-btn" class="button secondary hidden" type="button">Instalar app</button>
+          <button id="clear-cache-btn" class="button secondary small" type="button">Limpar cache</button>
           <p id="install-help" class="hint hidden">No Android Chrome, aguarde o prompt aparecer ou use o menu do navegador se necessário.</p>
         </div>
       </div>
     </section>
 
     <section id="inventory" class="tab-panel">
+      <div class="totals">
+        <div>
+          <strong>Total de produtos</strong>
+          <span id="total-items">0</span>
+        </div>
+        <div>
+          <strong>Valor total em estoque</strong>
+          <span id="total-value">R$ 0,00</span>
+        </div>
+      </div>
+
       <div class="inventory-header">
         <div>
           <h2>Produtos cadastrados</h2>
           <span id="product-count">0 produtos</span>
         </div>
         <div class="inventory-actions">
-          <button id="toggle-product-form" class="button secondary small" type="button">+ Novo produto</button>
-          <button id="clear-stock" class="button secondary small" type="button">Limpar estoque</button>
-        </div>
+            <button id="toggle-product-form" class="button secondary small" type="button">+ Novo produto</button>
+            <button id="clear-stock" class="button secondary small" type="button">Limpar estoque</button>
+          </div>
       </div>
 
-      <div id="product-form-wrapper" class="product-form-wrapper collapsed">
-        <form id="product-form" class="product-form">
+      <div id="product-form-wrapper" class="product-form-wrapper collapsed" style="display:none;">
+      </div>
+
+      <!-- Modal para cadastro/edição de produto -->
+      <div class="modal hidden" id="product-form-modal" role="dialog" aria-modal="true">
+        <div class="modal-content">
+          <button type="button" class="modal-close" id="close-product-form">×</button>
+          <h3>Cadastrar / Editar produto</h3>
+          <div id="product-code-display" style="margin-bottom:1rem;padding:0.75rem;border-radius:12px;background:#f0f4ff;border:1px solid #e0e7ff;">
+            <small style="color:#64748b;">Código interno:</small>
+            <div style="font-weight:700;font-size:1.1rem;color:#4f46e5;" id="preview-product-code">-</div>
+          </div>
+          <form id="product-form" class="product-form">
           <div class="field-row">
             <div class="field-group">
               <label for="name">Descrição</label>
@@ -93,23 +115,18 @@
             </div>
           </div>
 
+            <div class="field-group">
+              <label for="image-url">Imagem (URL opcional)</label>
+              <input id="image-url" name="image" type="text" placeholder="https://...">
+            </div>
+
           <button class="button" type="submit">Cadastrar produto</button>
         </form>
+        </div>
       </div>
 
-      <div class="inventory-list" id="product-list">
+      <div class="inventory-list list-scroll" id="product-list">
         <p class="empty-state">Cadastre produtos para gerenciar estoque.</p>
-      </div>
-
-      <div class="totals">
-        <div>
-          <strong>Total de itens</strong>
-          <span id="total-items">0</span>
-        </div>
-        <div>
-          <strong>Valor total no estoque</strong>
-          <span id="total-value">R$ 0,00</span>
-        </div>
       </div>
     </section>
 
@@ -151,15 +168,6 @@
           <button id="clear-cart" class="button secondary" type="button">Limpar carrinho</button>
           <button id="complete-sale" class="button" type="button">Finalizar venda</button>
         </div>
-
-        <div class="sales-history-section">
-          <div class="inventory-header">
-            <h2>Histórico de vendas</h2>
-          </div>
-          <div class="cart-list" id="sales-history">
-            <p class="empty-state">Nenhuma venda registrada ainda.</p>
-          </div>
-        </div>
       </div>
     </section>
 
@@ -196,17 +204,44 @@
         </div>
       </div>
     </section>
+
+    <section id="sales-history" class="tab-panel">
+      <div class="sales-history-section">
+        <div class="inventory-header">
+          <h2>Histórico de vendas</h2>
+        </div>
+        <div class="cart-list list-scroll sales-list" id="sales-history-main">
+          <p class="empty-state">Nenhuma venda registrada ainda.</p>
+        </div>
+      </div>
+    </section>
   </main>
+
+  <!-- Modal para detalhes de venda -->
+  <div class="modal hidden" id="sale-detail-modal" role="dialog" aria-modal="true">
+    <div class="modal-content">
+      <button type="button" class="modal-close" id="close-sale-detail">×</button>
+      <h3 class="modal-title">Detalhes da venda</h3>
+      <div class="detail-row"><strong>Data:</strong> <span id="sale-detail-date"></span></div>
+      <div class="detail-row"><strong>Método de pagamento:</strong> <span id="sale-detail-method"></span></div>
+      <div class="detail-row"><strong>Total:</strong> <span id="sale-detail-total"></span></div>
+      <div style="margin-top:1rem;">
+        <h4>Itens vendidos:</h4>
+        <div id="sale-detail-items" class="inventory-list"></div>
+      </div>
+    </div>
+  </div>
 
   <div class="modal hidden" id="product-detail-modal" role="dialog" aria-modal="true">
     <div class="modal-content">
       <button type="button" class="modal-close" id="close-product-detail">×</button>
-      <h3>Detalhes do produto</h3>
+      <h3 class="modal-title">Detalhes do produto</h3>
+      <div class="detail-row"><strong>Código interno:</strong> <span id="detail-code"></span></div>
       <div class="detail-row"><strong>Nome:</strong> <span id="detail-name"></span></div>
       <div class="detail-row"><strong>Categoria:</strong> <span id="detail-category"></span></div>
       <div class="detail-row"><strong>Estoque:</strong> <span id="detail-quantity"></span></div>
       <div class="detail-row"><strong>Preço:</strong> <span id="detail-price"></span></div>
-      <div class="detail-row"><strong>Descrição:</strong> <p id="detail-description"></p></div>
+      <div class="detail-row"><strong>URL da imagem:</strong> <span id="detail-image" style="word-break:break-all;font-size:0.9rem;color:#64748b;"></span></div>
       <div class="modal-actions">
         <button id="detail-edit" class="button secondary" type="button">Editar</button>
         <button id="detail-delete" class="button" type="button">Excluir</button>
@@ -238,6 +273,35 @@
       <div class="modal-actions">
         <button id="confirm-payment" class="button" type="button">Confirmar</button>
         <button id="cancel-payment" class="button secondary" type="button">Cancelar</button>
+        <button id="manage-payment-methods" class="button secondary small" type="button">Gerenciar métodos</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para gerenciar formas de pagamento -->
+  <div class="modal hidden" id="payment-method-modal" role="dialog" aria-modal="true">
+    <div class="modal-content">
+      <button type="button" class="modal-close" id="close-payment-method-modal">×</button>
+      <h3>Formas de pagamento</h3>
+      <p>Adicione ou remova formas de pagamento disponíveis no PDV.</p>
+
+      <form id="payment-method-form" class="product-form">
+        <div class="field-row">
+          <div class="field-group">
+            <label for="new-payment-method">Nova forma</label>
+            <input id="new-payment-method" type="text" placeholder="Ex: Cartão crédito" required>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button id="add-payment-method" class="button" type="submit">Adicionar</button>
+        </div>
+      </form>
+
+      <div style="margin-top:1rem;">
+        <h4>Formas ativas</h4>
+        <div id="payment-method-list" class="inventory-list">
+          <p class="empty-state">Nenhuma forma cadastrada.</p>
+        </div>
       </div>
     </div>
   </div>
