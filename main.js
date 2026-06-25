@@ -2,10 +2,12 @@ const toggleBtn = document.getElementById('toggle-btn');
 const message = document.getElementById('message');
 const statusBox = document.getElementById('status-box');
 const navigateBtn = document.getElementById('navigate-btn');
+const installBtn = document.getElementById('install-btn');
 const errorBtn = document.getElementById('error-btn');
 const closeErrorBtn = document.getElementById('close-error-btn');
 const errorOverlay = document.getElementById('error-overlay');
 let active = false;
+let deferredPrompt = null;
 
 function updateText() {
   if (!message || !statusBox) return;
@@ -48,6 +50,34 @@ if (navigateBtn) {
     window.location.href = 'other.html';
   });
 }
+
+if (installBtn) {
+  installBtn.addEventListener('click', async () => {
+    if (!deferredPrompt) {
+      return;
+    }
+
+    installBtn.classList.add('hidden');
+    deferredPrompt.prompt();
+    const choiceResult = await deferredPrompt.userChoice;
+    deferredPrompt = null;
+
+    if (choiceResult.outcome === 'accepted') {
+      console.log('Usuário aceitou a instalação');
+    } else {
+      console.log('Usuário rejeitou a instalação');
+    }
+  });
+}
+
+window.addEventListener('beforeinstallprompt', (event) => {
+  event.preventDefault();
+  deferredPrompt = event;
+
+  if (installBtn) {
+    installBtn.classList.remove('hidden');
+  }
+});
 
 if (errorBtn) {
   errorBtn.addEventListener('click', () => {

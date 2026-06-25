@@ -105,6 +105,10 @@ button.secondary {
   background: linear-gradient(135deg, #6366f1, #818cf8);
 }
 
+button.hidden {
+  display: none;
+}
+
 .overlay {
   position: fixed;
   inset: 0;
