@@ -1,7 +1,6 @@
 const productForm = document.getElementById('product-form');
 const nameInput = document.getElementById('name');
 const categoryInput = document.getElementById('category');
-const descriptionInput = document.getElementById('description');
 const quantityInput = document.getElementById('quantity');
 const priceInput = document.getElementById('price');
 const productList = document.getElementById('product-list');
@@ -30,12 +29,28 @@ const stockAddButton = document.getElementById('stock-add');
 const stockRemoveButton = document.getElementById('stock-remove');
 const productFormWrapper = document.getElementById('product-form-wrapper');
 const toggleProductFormButton = document.getElementById('toggle-product-form');
+const productDetailModal = document.getElementById('product-detail-modal');
+const closeProductDetailButton = document.getElementById('close-product-detail');
+const detailName = document.getElementById('detail-name');
+const detailCategory = document.getElementById('detail-category');
+const detailQuantity = document.getElementById('detail-quantity');
+const detailPrice = document.getElementById('detail-price');
+const detailDescription = document.getElementById('detail-description');
+const detailEditButton = document.getElementById('detail-edit');
+const detailDeleteButton = document.getElementById('detail-delete');
+const paymentModal = document.getElementById('payment-modal');
+const paymentMethodSelect = document.getElementById('payment-method');
+const paymentTotal = document.getElementById('payment-total');
+const confirmPaymentButton = document.getElementById('confirm-payment');
+const cancelPaymentButton = document.getElementById('cancel-payment');
+const closePaymentModalButton = document.getElementById('close-payment-modal');
 
 let products = [];
 let cart = [];
 let salesHistory = [];
 let stockMovements = [];
 let editingProductId = null;
+let currentDetailProductId = null;
 let deferredPrompt = null;
 const isMobile = /iphone|ipad|ipod|android/i.test(navigator.userAgent);
 
@@ -46,6 +61,10 @@ function formatCurrency(value) {
 function loadProducts() {
   const saved = localStorage.getItem('storeProducts');
   products = saved ? JSON.parse(saved) : [];
+}
+
+function generateProductCode() {
+  return `PRD-${String(Date.now()).slice(-6)}-${Math.floor(Math.random() * 900 + 100)}`;
 }
 
 function saveProducts() {
@@ -103,22 +122,17 @@ function renderProducts() {
     productList.innerHTML = '<p class="empty-state">Cadastre produtos para gerenciar estoque.</p>';
   } else {
     productList.innerHTML = products.map(product => `
-      <article class="product-card">
-        <div class="product-row">
+      <article class="product-card" data-id="${product.id}">
+        <div class="product-row compact">
           <div>
             <strong>${product.name}</strong>
-            <p>${product.description || 'Sem descrição'}</p>
+            <p>${product.category || 'Sem categoria'}</p>
           </div>
-          <div>
-            <button type="button" data-action="edit" data-id="${product.id}" class="button secondary small">Editar</button>
-            <button type="button" data-action="remove" data-id="${product.id}" class="button small">Remover</button>
+          <div class="product-meta compact">
+            <span>${product.code}</span>
+            <span>${product.quantity} em estoque</span>
+            <span>${formatCurrency(product.price)}</span>
           </div>
-        </div>
-        <div class="product-meta">
-          <span>Categoria: ${product.category || 'Geral'}</span>
-          <span>Estoque: ${product.quantity}</span>
-          <span>Preço: ${formatCurrency(product.price)}</span>
-          <span>Valor total: ${formatCurrency(product.quantity * product.price)}</span>
         </div>
       </article>`).join('');
   }
@@ -195,11 +209,12 @@ function renderSalesHistory() {
 
   salesHistoryList.innerHTML = salesHistory.map(entry => `
     <article class="product-card">
-      <div class="product-row">
+      <div class="product-row compact">
         <div>
           <strong>${entry.date}</strong>
           <p>${entry.items.length} item${entry.items.length === 1 ? '' : 's'} - ${formatCurrency(entry.total)}</p>
         </div>
+        <span class="payment-method">${entry.paymentMethod || 'Método não registrado'}</span>
       </div>
       <div class="product-meta">
         ${entry.items.map(item => `<span>${item.quantity} × ${item.name} (${formatCurrency(item.price)})</span>`).join('')}
@@ -239,6 +254,74 @@ function updateAllLists() {
   renderStockMovements();
 }
 
+function showModal(modal) {
+  if (!modal) return;
+  modal.classList.remove('hidden');
+  document.body.classList.add('no-scroll');
+}
+
+function closeModal(modal) {
+  if (!modal) return;
+  modal.classList.add('hidden');
+  document.body.classList.remove('no-scroll');
+}
+
+function openProductDetails(id) {
+  const product = products.find(item => item.id === id);
+  if (!product) return;
+
+  currentDetailProductId = id;
+  detailName.textContent = product.name;
+  detailCategory.textContent = product.category || 'Geral';
+  detailQuantity.textContent = product.quantity;
+  detailPrice.textContent = formatCurrency(product.price);
+  detailDescription.textContent = `Código interno: ${product.code}`;
+  showModal(productDetailModal);
+}
+
+function openPaymentModal() {
+  if (!paymentModal || !paymentTotal || !paymentMethodSelect) return;
+  paymentTotal.textContent = formatCurrency(cart.reduce((sum, item) => sum + item.quantity * item.price, 0));
+  paymentMethodSelect.value = '';
+  showModal(paymentModal);
+}
+
+function confirmPayment() {
+  if (!paymentMethodSelect || !paymentModal) return;
+  const method = paymentMethodSelect.value;
+  if (!method) {
+    alert('Selecione um método de pagamento para finalizar a venda.');
+    return;
+  }
+
+  cart.forEach(item => {
+    const product = products.find(prod => prod.id === item.id);
+    if (product) {
+      product.quantity -= item.quantity;
+      if (product.quantity < 0) product.quantity = 0;
+    }
+  });
+
+  const saleEntry = {
+    id: Date.now(),
+    date: new Date().toLocaleString('pt-BR'),
+    items: cart.map(item => ({ ...item })),
+    total: cart.reduce((sum, item) => sum + item.quantity * item.price, 0),
+    paymentMethod: method
+  };
+
+  salesHistory.unshift(saleEntry);
+  cart = [];
+
+  saveProducts();
+  saveCart();
+  saveSalesHistory();
+  updateAllLists();
+  closeModal(paymentModal);
+  saleQuantity.value = '1';
+  alert('Venda finalizada com sucesso!');
+}
+
 function startEditProduct(id) {
   const product = products.find(item => item.id === id);
   if (!product) return;
@@ -247,7 +330,6 @@ function startEditProduct(id) {
   showProductForm(true);
   nameInput.value = product.name;
   categoryInput.value = product.category || '';
-  descriptionInput.value = product.description || '';
   quantityInput.value = String(product.quantity);
   priceInput.value = String(product.price.toFixed(2));
   if (productForm) {
@@ -261,12 +343,11 @@ function addProduct(event) {
 
   const name = nameInput.value.trim();
   const category = categoryInput.value.trim();
-  const description = descriptionInput.value.trim();
   const quantity = Number(quantityInput.value);
   const price = Number(priceInput.value);
 
   if (!name || quantity < 1 || price <= 0) {
-    alert('Preencha nome, quantidade e preço válidos.');
+    alert('Preencha descrição, quantidade e preço válidos.');
     return;
   }
 
@@ -275,13 +356,12 @@ function addProduct(event) {
       ...item,
       name,
       category,
-      description,
       quantity,
       price
     } : item);
     editingProductId = null;
   } else {
-    products.unshift({ id: Date.now(), name, category, description, quantity, price });
+    products.unshift({ id: Date.now(), code: generateProductCode(), name, category, quantity, price });
   }
 
   saveProducts();
@@ -367,30 +447,7 @@ function completeSale() {
     return;
   }
 
-  cart.forEach(item => {
-    const product = products.find(prod => prod.id === item.id);
-    if (product) {
-      product.quantity -= item.quantity;
-      if (product.quantity < 0) product.quantity = 0;
-    }
-  });
-
-  const saleEntry = {
-    id: Date.now(),
-    date: new Date().toLocaleString('pt-BR'),
-    items: cart.map(item => ({ ...item })),
-    total: cart.reduce((sum, item) => sum + item.quantity * item.price, 0)
-  };
-
-  salesHistory.unshift(saleEntry);
-  cart = [];
-
-  saveProducts();
-  saveCart();
-  saveSalesHistory();
-  updateAllLists();
-  saleQuantity.value = '1';
-  alert('Venda finalizada com sucesso!');
+  openPaymentModal();
 }
 
 function recordStockMovement(type) {
@@ -474,6 +531,40 @@ if (installBtn) {
     if (choice.outcome !== 'accepted') showInstallHelp();
   });
 }
+if (closeProductDetailButton) {
+  closeProductDetailButton.addEventListener('click', () => closeModal(productDetailModal));
+}
+if (detailEditButton) {
+  detailEditButton.addEventListener('click', () => {
+    if (currentDetailProductId !== null) startEditProduct(currentDetailProductId);
+    closeModal(productDetailModal);
+  });
+}
+if (detailDeleteButton) {
+  detailDeleteButton.addEventListener('click', () => {
+    if (currentDetailProductId !== null) removeProduct(currentDetailProductId);
+    closeModal(productDetailModal);
+  });
+}
+if (productDetailModal) {
+  productDetailModal.addEventListener('click', (event) => {
+    if (event.target === productDetailModal) closeModal(productDetailModal);
+  });
+}
+if (closePaymentModalButton) {
+  closePaymentModalButton.addEventListener('click', () => closeModal(paymentModal));
+}
+if (cancelPaymentButton) {
+  cancelPaymentButton.addEventListener('click', () => closeModal(paymentModal));
+}
+if (confirmPaymentButton) {
+  confirmPaymentButton.addEventListener('click', confirmPayment);
+}
+if (paymentModal) {
+  paymentModal.addEventListener('click', (event) => {
+    if (event.target === paymentModal) closeModal(paymentModal);
+  });
+}
 if (tabButtons.length) {
   tabButtons.forEach(button => {
     button.addEventListener('click', () => switchTab(button.dataset.tab));
@@ -481,14 +572,17 @@ if (tabButtons.length) {
 }
 if (productList) {
   productList.addEventListener('click', (event) => {
-    const target = event.target;
-    if (target.matches('button[data-action="remove"]')) {
-      const id = Number(target.dataset.id);
-      removeProduct(id);
+    const button = event.target.closest('button[data-action]');
+    if (button) {
+      const id = Number(button.dataset.id);
+      if (button.dataset.action === 'remove') removeProduct(id);
+      if (button.dataset.action === 'edit') startEditProduct(id);
+      return;
     }
-    if (target.matches('button[data-action="edit"]')) {
-      const id = Number(target.dataset.id);
-      startEditProduct(id);
+
+    const card = event.target.closest('article[data-id]');
+    if (card) {
+      openProductDetails(Number(card.dataset.id));
     }
   });
 }

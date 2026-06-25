@@ -20,22 +20,44 @@
 
     <header class="hero">
       <span class="badge">LOJA</span>
-      <h1>Controle de Estoque e PDV</h1>
-      <p class="lead">Sistema simples para sua lojinha: cadastre produtos, controle estoque e venda pelo PDV. Funciona offline e pode ser instalado.</p>
+      <h1>Painel da sua loja</h1>
+      <p class="lead">Um espaço organizado para gerenciar estoque, vendas e movimentações com simplicidade.</p>
     </header>
 
     <section class="topbar">
-      <button class="tab-button active" data-tab="inventory">Estoque</button>
+      <button class="tab-button active" data-tab="home">Início</button>
+      <button class="tab-button" data-tab="inventory">Estoque</button>
       <button class="tab-button" data-tab="pos">PDV</button>
       <button class="tab-button" data-tab="movement">Movimentação</button>
     </section>
 
-    <section class="actions">
-      <button id="install-btn" class="button secondary hidden" type="button">Instalar app</button>
-      <p id="install-help" class="hint hidden">No Android Chrome, aguarde o prompt aparecer ou use o menu do navegador se necessário.</p>
+    <section id="home" class="tab-panel active-panel">
+      <div class="home-card">
+        <span class="badge">LOJA</span>
+        <h2>Bem-vindo ao painel da sua loja</h2>
+        <p class="lead">Aqui você controla o estoque, registra vendas e registra movimentações de saída ou entrada.</p>
+        <div class="home-info-grid">
+          <div class="info-box">
+            <strong>Cadastro rápido</strong>
+            <p>Registre produtos com nome, categoria, descrição, estoque e preço.</p>
+          </div>
+          <div class="info-box">
+            <strong>PDV simples</strong>
+            <p>Adicione itens ao carrinho e escolha o método de pagamento antes de finalizar.</p>
+          </div>
+          <div class="info-box">
+            <strong>Movimentações</strong>
+            <p>Faça ajustes manuais no estoque e acompanhe o histórico de entradas e saídas.</p>
+          </div>
+        </div>
+        <div class="actions">
+          <button id="install-btn" class="button secondary hidden" type="button">Instalar app</button>
+          <p id="install-help" class="hint hidden">No Android Chrome, aguarde o prompt aparecer ou use o menu do navegador se necessário.</p>
+        </div>
+      </div>
     </section>
 
-    <section id="inventory" class="tab-panel active-panel">
+    <section id="inventory" class="tab-panel">
       <div class="inventory-header">
         <div>
           <h2>Produtos cadastrados</h2>
@@ -51,18 +73,13 @@
         <form id="product-form" class="product-form">
           <div class="field-row">
             <div class="field-group">
-              <label for="name">Nome do produto</label>
+              <label for="name">Descrição</label>
               <input id="name" name="name" type="text" placeholder="Caneta azul" required>
             </div>
             <div class="field-group">
               <label for="category">Categoria</label>
               <input id="category" name="category" type="text" placeholder="Material escolar">
             </div>
-          </div>
-
-          <div class="field-group">
-            <label for="description">Descrição</label>
-            <textarea id="description" name="description" rows="2" placeholder="Breve descrição do produto"></textarea>
           </div>
 
           <div class="field-row">
@@ -180,6 +197,50 @@
       </div>
     </section>
   </main>
+
+  <div class="modal hidden" id="product-detail-modal" role="dialog" aria-modal="true">
+    <div class="modal-content">
+      <button type="button" class="modal-close" id="close-product-detail">×</button>
+      <h3>Detalhes do produto</h3>
+      <div class="detail-row"><strong>Nome:</strong> <span id="detail-name"></span></div>
+      <div class="detail-row"><strong>Categoria:</strong> <span id="detail-category"></span></div>
+      <div class="detail-row"><strong>Estoque:</strong> <span id="detail-quantity"></span></div>
+      <div class="detail-row"><strong>Preço:</strong> <span id="detail-price"></span></div>
+      <div class="detail-row"><strong>Descrição:</strong> <p id="detail-description"></p></div>
+      <div class="modal-actions">
+        <button id="detail-edit" class="button secondary" type="button">Editar</button>
+        <button id="detail-delete" class="button" type="button">Excluir</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal hidden" id="payment-modal" role="dialog" aria-modal="true">
+    <div class="modal-content">
+      <button type="button" class="modal-close" id="close-payment-modal">×</button>
+      <h3>Registrar pagamento</h3>
+      <p>Escolha o método de pagamento para finalizar a venda.</p>
+      <div class="field-group">
+        <label for="payment-method">Método de pagamento</label>
+        <select id="payment-method">
+          <option value="">Selecione</option>
+          <option value="Dinheiro">Dinheiro</option>
+          <option value="Cartão">Cartão</option>
+          <option value="Pix">Pix</option>
+          <option value="Vale">Vale</option>
+        </select>
+      </div>
+      <div class="field-row small-gap">
+        <div class="field-group">
+          <strong>Total</strong>
+          <span id="payment-total">R$ 0,00</span>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button id="confirm-payment" class="button" type="button">Confirmar</button>
+        <button id="cancel-payment" class="button secondary" type="button">Cancelar</button>
+      </div>
+    </div>
+  </div>
 
   <script src="main.js" defer></script>
 </body>
