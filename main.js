@@ -3,11 +3,13 @@ const message = document.getElementById('message');
 const statusBox = document.getElementById('status-box');
 const navigateBtn = document.getElementById('navigate-btn');
 const installBtn = document.getElementById('install-btn');
+const installHelp = document.getElementById('install-help');
 const errorBtn = document.getElementById('error-btn');
 const closeErrorBtn = document.getElementById('close-error-btn');
 const errorOverlay = document.getElementById('error-overlay');
 let active = false;
 let deferredPrompt = null;
+const isMobile = /iphone|ipad|ipod|android/i.test(navigator.userAgent);
 
 function updateText() {
   if (!message || !statusBox) return;
@@ -74,9 +76,30 @@ window.addEventListener('beforeinstallprompt', (event) => {
   event.preventDefault();
   deferredPrompt = event;
 
+  if (installHelp) {
+    installHelp.classList.add('hidden');
+  }
+
   if (installBtn) {
     installBtn.classList.remove('hidden');
   }
+});
+
+function showInstallHelp() {
+  if (installHelp) {
+    installHelp.classList.remove('hidden');
+  }
+}
+
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    if (isMobile && !deferredPrompt) {
+      if (installBtn) {
+        installBtn.classList.add('hidden');
+      }
+      showInstallHelp();
+    }
+  }, 1800);
 });
 
 if (errorBtn) {
