@@ -1,89 +1,101 @@
-const toggleBtn = document.getElementById('toggle-btn');
-const message = document.getElementById('message');
-const statusBox = document.getElementById('status-box');
-const navigateBtn = document.getElementById('navigate-btn');
+const productForm = document.getElementById('product-form');
+const nameInput = document.getElementById('name');
+const descriptionInput = document.getElementById('description');
+const quantityInput = document.getElementById('quantity');
+const priceInput = document.getElementById('price');
+const productList = document.getElementById('product-list');
+const productCount = document.getElementById('product-count');
+const totalItems = document.getElementById('total-items');
+const totalValue = document.getElementById('total-value');
 const installBtn = document.getElementById('install-btn');
 const installHelp = document.getElementById('install-help');
-const errorBtn = document.getElementById('error-btn');
-const closeErrorBtn = document.getElementById('close-error-btn');
-const errorOverlay = document.getElementById('error-overlay');
-let active = false;
+
+let products = [];
 let deferredPrompt = null;
 const isMobile = /iphone|ipad|ipod|android/i.test(navigator.userAgent);
 
-function updateText() {
-  if (!message || !statusBox) return;
+function formatCurrency(value) {
+  return value.toLocaleString('pt-BR', {
+    style: 'currency',
+    currency: 'BRL'
+  });
+}
 
-  if (active) {
-    message.textContent = 'Texto alterado! O PWA agora responde aos seus cliques.';
-    statusBox.style.borderColor = '#a78bfa';
-    statusBox.style.background = 'rgba(238, 242, 255, 0.9)';
+function loadProducts() {
+  const saved = localStorage.getItem('productCatalog');
+  products = saved ? JSON.parse(saved) : [];
+  renderProducts();
+}
+
+function saveProducts() {
+  localStorage.setItem('productCatalog', JSON.stringify(products));
+}
+
+function renderProducts() {
+  if (!productList || !productCount || !totalItems || !totalValue) return;
+
+  if (products.length === 0) {
+    productList.innerHTML = '<p class="empty-state">Nenhum produto cadastrado ainda.</p>';
   } else {
-    message.textContent = 'Pronto para você testar o botão.';
-    statusBox.style.borderColor = 'rgba(148, 163, 184, 0.18)';
-    statusBox.style.background = '#f8fafc';
+    productList.innerHTML = products.map(product => `
+      <article class="product-card">
+        <div class="product-row">
+          <div>
+            <strong>${product.name}</strong>
+            <p>${product.description || 'Sem descrição'}</p>
+          </div>
+          <button type="button" data-id="${product.id}">Remover</button>
+        </div>
+        <div class="product-meta">
+          <span>Quantidade: ${product.quantity}</span>
+          <span>Preço unitário: ${formatCurrency(product.price)}</span>
+          <span>Subtotal: ${formatCurrency(product.quantity * product.price)}</span>
+        </div>
+      </article>`).join('');
   }
+
+  const totalQuantity = products.reduce((sum, item) => sum + item.quantity, 0);
+  const totalPrice = products.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+  productCount.textContent = `${products.length} item${products.length === 1 ? '' : 's'}`;
+  totalItems.textContent = totalQuantity;
+  totalValue.textContent = formatCurrency(totalPrice);
 }
 
-function animateButton(button) {
-  if (!button || !button.animate) return;
-
-  button.animate([
-    { transform: 'translateY(0px)' },
-    { transform: 'translateY(-6px)' },
-    { transform: 'translateY(0px)' }
-  ], {
-    duration: 280,
-    easing: 'ease-out'
-  });
-}
-
-if (toggleBtn) {
-  toggleBtn.addEventListener('click', () => {
-    active = !active;
-    updateText();
-    animateButton(toggleBtn);
-  });
-}
-
-if (navigateBtn) {
-  navigateBtn.addEventListener('click', () => {
-    animateButton(navigateBtn);
-    window.location.href = 'other.html';
-  });
-}
-
-if (installBtn) {
-  installBtn.addEventListener('click', async () => {
-    if (!deferredPrompt) {
-      return;
-    }
-
-    installBtn.classList.add('hidden');
-    deferredPrompt.prompt();
-    const choiceResult = await deferredPrompt.userChoice;
-    deferredPrompt = null;
-
-    if (choiceResult.outcome === 'accepted') {
-      console.log('Usuário aceitou a instalação');
-    } else {
-      console.log('Usuário rejeitou a instalação');
-    }
-  });
-}
-
-window.addEventListener('beforeinstallprompt', (event) => {
+function addProduct(event) {
   event.preventDefault();
-  deferredPrompt = event;
 
-  if (installHelp) {
-    installHelp.classList.add('hidden');
+  const name = nameInput.value.trim();
+  const description = descriptionInput.value.trim();
+  const quantity = Number(quantityInput.value);
+  const price = Number(priceInput.value);
+
+  if (!name || quantity <= 0 || price <= 0) {
+    alert('Preencha o nome, quantidade e preço corretamente.');
+    return;
   }
 
-  if (installBtn) {
-    installBtn.classList.remove('hidden');
-  }
-});
+  products.unshift({
+    id: Date.now(),
+    name,
+    description,
+    quantity,
+    price
+  });
+
+  saveProducts();
+  renderProducts();
+  productForm.reset();
+  quantityInput.value = '1';
+  priceInput.value = '0.00';
+  nameInput.focus();
+}
+
+function removeProduct(id) {
+  products = products.filter(item => item.id !== id);
+  saveProducts();
+  renderProducts();
+}
 
 function showInstallHelp() {
   if (installHelp) {
@@ -91,7 +103,55 @@ function showInstallHelp() {
   }
 }
 
+function hideInstallHelp() {
+  if (installHelp) {
+    installHelp.classList.add('hidden');
+  }
+}
+
+function handleInstallPrompt(event) {
+  event.preventDefault();
+  deferredPrompt = event;
+  if (installBtn) {
+    installBtn.classList.remove('hidden');
+  }
+  hideInstallHelp();
+}
+
+if (productForm) {
+  productForm.addEventListener('submit', addProduct);
+}
+
+if (productList) {
+  productList.addEventListener('click', (event) => {
+    const target = event.target;
+    if (target.matches('button[data-id]')) {
+      const id = Number(target.dataset.id);
+      removeProduct(id);
+    }
+  });
+}
+
+if (installBtn) {
+  installBtn.addEventListener('click', async () => {
+    if (!deferredPrompt) return;
+
+    deferredPrompt.prompt();
+    const choice = await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    installBtn.classList.add('hidden');
+
+    if (choice.outcome !== 'accepted') {
+      showInstallHelp();
+    }
+  });
+}
+
+window.addEventListener('beforeinstallprompt', handleInstallPrompt);
+
 window.addEventListener('load', () => {
+  loadProducts();
+
   setTimeout(() => {
     if (isMobile && !deferredPrompt) {
       if (installBtn) {
@@ -99,38 +159,18 @@ window.addEventListener('load', () => {
       }
       showInstallHelp();
     }
-  }, 1800);
-});
+  }, 1200);
 
-if (errorBtn) {
-  errorBtn.addEventListener('click', () => {
-    animateButton(errorBtn);
-    if (errorOverlay) {
-      errorOverlay.classList.remove('hidden');
-    }
-  });
-}
-
-if (closeErrorBtn) {
-  closeErrorBtn.addEventListener('click', () => {
-    if (errorOverlay) {
-      errorOverlay.classList.add('hidden');
-    }
-  });
-}
-
-if (errorOverlay) {
-  errorOverlay.addEventListener('click', (event) => {
-    if (event.target === errorOverlay) {
-      errorOverlay.classList.add('hidden');
-    }
-  });
-}
-
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
+  if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('service-worker.js')
       .then(() => console.log('Service Worker registrado com sucesso.'))
       .catch((error) => console.warn('Falha no registro do SW:', error));
-  });
-}
+  }
+});
+
+window.addEventListener('appinstalled', () => {
+  if (installBtn) {
+    installBtn.classList.add('hidden');
+  }
+  hideInstallHelp();
+});

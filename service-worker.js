@@ -1,11 +1,12 @@
-const CACHE_NAME = 'mini-pwa-cache-v1';
+const CACHE_NAME = 'product-pwa-cache-v1';
 const ASSETS_TO_CACHE = [
   '.',
   'index.html',
-  'other.html',
   'main.js',
   'style.css',
-  'manifest.json'
+  'manifest.json',
+  'icons/icon-192.png',
+  'icons/icon-512.png'
 ];
 
 self.addEventListener('install', event => {
@@ -27,14 +28,25 @@ self.addEventListener('activate', event => {
 
 self.addEventListener('fetch', event => {
   event.respondWith(
-    fetch(event.request)
-      .then(response => {
-        const clonedResponse = response.clone();
-        if (event.request.method === 'GET' && event.request.url.startsWith(self.location.origin)) {
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clonedResponse));
-        }
-        return response;
-      })
-      .catch(() => caches.match(event.request).then(cached => cached || caches.match('index.html')))
+    caches.match(event.request).then(cachedResponse => {
+      if (cachedResponse) {
+        return cachedResponse;
+      }
+
+      return fetch(event.request)
+        .then(networkResponse => {
+          if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
+            return networkResponse;
+          }
+
+          const responseClone = networkResponse.clone();
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put(event.request, responseClone);
+          });
+
+          return networkResponse;
+        })
+        .catch(() => caches.match('index.html'));
+    })
   );
 });

@@ -1,7 +1,7 @@
 {
-  "name": "Mini PWA",
-  "short_name": "PWA",
-  "description": "Um PWA simples com texto e botão para ver no celular.",
+  "name": "Cadastro de Produtos PWA",
+  "short_name": "Produtos",
+  "description": "Mini sistema PWA de cadastro de produtos com preço, quantidade e descrição.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
